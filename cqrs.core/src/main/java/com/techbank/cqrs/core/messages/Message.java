@@ -15,4 +15,9 @@ public abstract class Message{
     @Getter
     @Setter
     String id;
+
+    @Getter
+    @Setter
+    long version;
+
 }

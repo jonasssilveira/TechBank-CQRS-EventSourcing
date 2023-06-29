@@ -24,8 +24,9 @@ public class AggregateRoot {
 
     @Getter
     @Setter
-    private Long version;
+    private long version;
 
+    @Getter
     private final List<BaseEvent> changes = new ArrayList<>();
 
     private final Logger logger = Logger.getLogger(AggregateRoot.class.getName());
@@ -51,7 +52,10 @@ public class AggregateRoot {
         }
     }
 
-    public void raiseEvent(BaseEvent event ){
+    public void markChangesAsCommitted() {
+        this.changes.clear();
+    }
+    public void raiseEvent(BaseEvent event){
         applyChanges(event, true);
     }
 

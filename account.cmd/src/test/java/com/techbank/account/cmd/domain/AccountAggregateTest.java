@@ -11,11 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import static com.example.account.common.dto.AccountType.CURRENT;
 import static com.example.account.common.dto.AccountType.SAVINGS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -83,9 +83,15 @@ public class AccountAggregateTest {
 
     @Test
     public void shouldCloseAccountWithSuccess() {
+        //act
         this.accountAggregate.apply(accountOpenedEvent);
-        this.accountAggregate.closeAccount();
+        AccountClosedEvent accountClosedEvent = this.accountAggregate.closeAccount();
+        this.accountAggregate.apply(accountClosedEvent);
+
+        //assert
         verify(this.aggregateRoot,times(2)).raiseEvent(any(BaseEvent.class));
+        assertEquals(accountOpenedEvent.getId(),this.accountAggregate.getRoot().getId());
+        assertFalse(this.accountAggregate.getActive());
     }
 
     @Test
@@ -98,5 +104,32 @@ public class AccountAggregateTest {
         assertEquals(IllegalStateException.class, illegalStateException.getClass());
 
     }
+
+
+    @Test
+    public void shouldWithdrawAccountWithSuccess() {
+        //act
+        this.accountAggregate.apply(accountOpenedEvent);
+        var fundsWithdrewEvent = this.accountAggregate.withdrawFunds(10D);
+        this.accountAggregate.apply(fundsWithdrewEvent);
+
+        //assert
+        verify(this.aggregateRoot,times(2)).raiseEvent(any(BaseEvent.class));
+        assertEquals(accountOpenedEvent.getId(),this.accountAggregate.getRoot().getId());
+        assertEquals(90D,this.accountAggregate.getBalance());
+
+    }
+
+
+    @Test
+    public void shouldNotWithdrawWhenTheEventIsNotActive() {
+        String expectedMessage = "Funds cannot be withdrawn from a closed account!";
+        IllegalStateException illegalStateException = assertThrows(IllegalStateException.class,
+                () -> this.accountAggregate.withdrawFunds(100));
+
+        assertEquals(expectedMessage, illegalStateException.getMessage());
+        assertEquals(IllegalStateException.class, illegalStateException.getClass());
+    }
+
 
 }

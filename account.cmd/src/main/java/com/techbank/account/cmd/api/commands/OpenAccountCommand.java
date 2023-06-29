@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class OpenAccountCommand extends BaseCommand {
+public class OpenAccountCommand extends BaseCommand{
 
     public String accountHolder;
     public AccountType accountType;
